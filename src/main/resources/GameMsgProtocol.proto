@@ -139,7 +139,7 @@ message UserSubtractHpResult {
     uint32 subtractHp = 2;
 }
 
-// 死亡结果
+// 死亡结果 
 message UserDieResult {
     // 目标用户 Id
     uint32 targetUserId = 1;
