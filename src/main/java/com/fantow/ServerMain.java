@@ -1,5 +1,7 @@
 package com.fantow;
 
+import com.fantow.codec.GameMsgDecoder;
+import com.fantow.codec.GameMsgEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -18,6 +20,8 @@ import org.slf4j.LoggerFactory;
 public class ServerMain {
 
     private static Logger logger = LoggerFactory.getLogger(ServerMain.class);
+
+    private static int PORT = 12345;
 
     public static void main(String[] args) {
         PropertyConfigurator.configure(ServerMain.class.getClassLoader().getResourceAsStream("log4j.properties"));
@@ -39,6 +43,9 @@ public class ServerMain {
                                 new HttpObjectAggregator(65535),
                                 // 处理Websocket升级握手相关操作
                                 new WebSocketServerProtocolHandler("/websocket"),
+                                // 自定义的消息解码器
+                                new GameMsgDecoder(),
+                                new GameMsgEncoder(),
                                 new GameMessageHandler()
                             );
 
@@ -49,7 +56,7 @@ public class ServerMain {
             bootstrap.option(ChannelOption.SO_BACKLOG,128);
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE,true);
 
-            ChannelFuture channelFuture = bootstrap.bind(12345).sync();
+            ChannelFuture channelFuture = bootstrap.bind(PORT).sync();
 
             if(channelFuture.isSuccess()){
                 logger.info("服务器启动成功......");
