@@ -69,6 +69,7 @@ public class GameMsgRecognizer {
             return null;
         }
 
+        // 获取到指定类型的消息builder
         return msg.newBuilderForType();
     }
 

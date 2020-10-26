@@ -1,5 +1,6 @@
 package com.fantow;
 
+import com.fantow.DBOperation.MySqlSessionFactory;
 import com.fantow.Utils.GameMsgRecognizer;
 import com.fantow.codec.GameMsgDecoder;
 import com.fantow.codec.GameMsgEncoder;
@@ -33,6 +34,7 @@ public class ServerMain {
 
         CmdHandlerFactory.init();
         GameMsgRecognizer.init();
+        MySqlSessionFactory.init();
 
 
         try {

@@ -26,6 +26,10 @@ public final class UserManager {
         }
     }
 
+    public static UserInfo getUserInfo(int userId){
+        return userMap.get(userId);
+    }
+
     public static void removeUser(Integer userId){
         if(userId != null){
             userMap.remove(userId);

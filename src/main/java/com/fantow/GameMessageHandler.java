@@ -1,21 +1,21 @@
 package com.fantow;
 
-import com.fantow.Entity.UserInfo;
+import com.fantow.Processor.MainMsgProcessor;
 import com.fantow.Utils.Broadcaster;
 import com.fantow.Utils.UserManager;
-import com.fantow.handler.*;
 import com.fantow.message.GameMsgProtocol;
 import com.google.protobuf.GeneratedMessageV3;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
-import jdk.internal.org.objectweb.asm.util.CheckAnnotationAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GameMessageHandler extends SimpleChannelInboundHandler<Object> {
 
     private static Logger logger = LoggerFactory.getLogger(GameMessageHandler.class);
+
+//    private MainMsgProcessor processor = MainMsgProcessor.getInstance();
 
 
     // 当建立一个channel后，将这个channel存入ChannelGroup中
@@ -39,20 +39,27 @@ public class GameMessageHandler extends SimpleChannelInboundHandler<Object> {
     // 当从Decoder的消息处理完，到这个Handler时
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
-        if(channelHandlerContext == null){
-            logger.info("当前channelHandlerContext为null");
-        }
+//        processor.handle(channelHandlerContext,o);
+        MainMsgProcessor.getInstance().handle(channelHandlerContext,o);
 
-        try{
-            // 新客户端连接时，会使用该命令告知服务器端
-            ICmdHandler<? extends GeneratedMessageV3> handler = CmdHandlerFactory.getHandler(o.getClass());
+//        System.out.println("调用了线程：" + Thread.currentThread().getName() + "进行任务的处理");
+//
+//        if(channelHandlerContext == null){
+//            logger.info("当前channelHandlerContext为null");
+//        }
+//
+//        try{
+//            // 新客户端连接时，会使用该命令告知服务器端
+//            ICmdHandler<? extends GeneratedMessageV3> handler = CmdHandlerFactory.getHandler(o.getClass());
+//
+//            if(handler != null){
+//                handler.handle(channelHandlerContext,cast(o));
+//            }
+//        }catch (Exception ex) {
+//            logger.error(ex.getMessage(), ex);
+//        }
 
-            if(handler != null){
-                handler.handle(channelHandlerContext,cast(o));
-            }
-        }catch (Exception ex){
-            logger.error(ex.getMessage(),ex);
-        }
+
     }
 
 
@@ -99,5 +106,6 @@ public class GameMessageHandler extends SimpleChannelInboundHandler<Object> {
             return (T) msg;
         }
     }
+
 
 }

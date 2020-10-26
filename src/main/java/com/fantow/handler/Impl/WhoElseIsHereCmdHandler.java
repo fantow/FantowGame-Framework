@@ -34,6 +34,16 @@ public class WhoElseIsHereCmdHandler implements ICmdHandler<GameMsgProtocol.WhoE
             userInfoBuilder.setUserId(userInfo.getUserId());
             userInfoBuilder.setHeroAvatar(userInfo.getHeroAvatar());
 
+            GameMsgProtocol.WhoElseIsHereResult.UserInfo.MoveState.Builder moveStateBuilder = GameMsgProtocol.WhoElseIsHereResult.UserInfo.MoveState.newBuilder();
+
+            // 填充moveState结构
+            moveStateBuilder.setFromPosX(userInfo.getMoveState().getFromPosx());
+            moveStateBuilder.setFromPosY(userInfo.getMoveState().getFromPosy());
+            moveStateBuilder.setToPosX(userInfo.getMoveState().getToPosx());
+            moveStateBuilder.setToPosY(userInfo.getMoveState().getToPosy());
+            moveStateBuilder.setStartTime(userInfo.getMoveState().getStartTime());
+
+            userInfoBuilder.setMoveState(moveStateBuilder.build());
 
             resultBuilder.addUserInfo(userInfoBuilder.build());
         }
