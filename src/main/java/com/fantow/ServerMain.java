@@ -1,7 +1,9 @@
 package com.fantow;
 
+import com.fantow.Utils.GameMsgRecognizer;
 import com.fantow.codec.GameMsgDecoder;
 import com.fantow.codec.GameMsgEncoder;
+import com.fantow.handler.CmdHandlerFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -28,6 +30,10 @@ public class ServerMain {
 
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+        CmdHandlerFactory.init();
+        GameMsgRecognizer.init();
+
 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();

@@ -1,6 +1,8 @@
 package com.fantow.codec;
 
+import com.fantow.Utils.GameMsgRecognizer;
 import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -41,24 +43,18 @@ public class GameMsgDecoder extends ChannelInboundHandlerAdapter {
             byte[] msgBody = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(msgBody);
 
-            GeneratedMessageV3 cmd = null;
 
-            switch (contextType) {
-                case GameMsgProtocol.MsgCode.USER_ENTRY_CMD_VALUE:
-                    // 将使用msgBody中的数字填充UserEntryCmd的结构
-                    cmd = GameMsgProtocol.UserEntryCmd.parseFrom(msgBody);
-                    break;
-                case GameMsgProtocol.MsgCode.WHO_ELSE_IS_HERE_CMD_VALUE:
-                    cmd = GameMsgProtocol.WhoElseIsHereCmd.parseFrom(msgBody);
+            Message.Builder builder = GameMsgRecognizer.getBuilderByMsgCode(contextType);
+            builder.clear();
 
-                default:
-                    break;
-            }
+            builder.mergeFrom(msgBody);
+
+            Message message = builder.build();
 
             // 如果cmd != null
             // 触发下一个ChannelInboundHandler的channelRead()方法
-            if (cmd != null) {
-                ctx.fireChannelRead(cmd);
+            if (message != null) {
+                ctx.fireChannelRead(message);
             }
         }catch (Exception ex){
             logger.error(ex.getMessage(),ex);

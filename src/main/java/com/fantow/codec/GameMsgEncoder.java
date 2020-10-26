@@ -1,6 +1,6 @@
 package com.fantow.codec;
 
-import com.fantow.message.GameMsgProtocol;
+import com.fantow.Utils.GameMsgRecognizer;
 import com.google.protobuf.GeneratedMessageV3;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,18 +29,13 @@ public class GameMsgEncoder extends ChannelOutboundHandlerAdapter {
                 return;
             }
 
-            // 处理用户UserEntry请求
-            if(msg instanceof GameMsgProtocol.UserEntryResult){
-                msgCode = GameMsgProtocol.MsgCode.USER_ENTRY_RESULT_VALUE;
-            }else if(msg instanceof GameMsgProtocol.WhoElseIsHereResult){
-                // 处理用户WhoElseIsHere请求
-                msgCode = GameMsgProtocol.MsgCode.WHO_ELSE_IS_HERE_RESULT_VALUE;
 
-            } else{
-                logger.error("无法识别的类型...");
-                super.write(ctx,msg,promise);
+            msgCode = GameMsgRecognizer.getMsgCodeByMsgClass(msg.getClass());
+            if(msgCode == -1){
+                logger.info("无法识别的类型...");
                 return;
             }
+
 
             // 获取到消息体
             byte[] msgBody = ((GeneratedMessageV3) msg).toByteArray();
@@ -48,8 +43,8 @@ public class GameMsgEncoder extends ChannelOutboundHandlerAdapter {
             // 将消息的length，code和body封装到BinaryWebSocketFrame
             ByteBuf buf = ctx.alloc().buffer();
 
-            buf.writeShort(msgBody.length);
-            buf.writeShort(msgCode);
+            buf.writeShort((short)msgBody.length);
+            buf.writeShort((short) msgCode);
             buf.writeBytes(msgBody);
 
             BinaryWebSocketFrame outputFrame = new BinaryWebSocketFrame(buf);

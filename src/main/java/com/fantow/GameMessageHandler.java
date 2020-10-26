@@ -1,28 +1,22 @@
 package com.fantow;
 
 import com.fantow.Entity.UserInfo;
+import com.fantow.Utils.Broadcaster;
+import com.fantow.Utils.UserManager;
+import com.fantow.handler.*;
 import com.fantow.message.GameMsgProtocol;
-import io.netty.channel.Channel;
+import com.google.protobuf.GeneratedMessageV3;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.AttributeKey;
+import jdk.internal.org.objectweb.asm.util.CheckAnnotationAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 public class GameMessageHandler extends SimpleChannelInboundHandler<Object> {
 
     private static Logger logger = LoggerFactory.getLogger(GameMessageHandler.class);
 
-    // 这是一个容器，底层用ConcurrentHashMap记录<ChannelId,Channel>
-    private static ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-
-    private static Map<Integer, UserInfo> userInfoMap = new HashMap<>();
 
     // 当建立一个channel后，将这个channel存入ChannelGroup中
     @Override
@@ -34,12 +28,12 @@ public class GameMessageHandler extends SimpleChannelInboundHandler<Object> {
 
         try {
             super.channelActive(ctx);
-            channelGroup.add(ctx.channel());
+
+            Broadcaster.addChannel(ctx.channel());;
             logger.info("将channel:{} 添加进ChannelGroup",ctx.channel());
         }catch (Exception ex){
             logger.error(ex.getMessage(),ex);
         }
-
     }
 
     // 当从Decoder的消息处理完，到这个Handler时
@@ -51,60 +45,14 @@ public class GameMessageHandler extends SimpleChannelInboundHandler<Object> {
 
         try{
             // 新客户端连接时，会使用该命令告知服务器端
-            if(o instanceof GameMsgProtocol.UserEntryCmd) {
-                GameMsgProtocol.UserEntryCmd cmd = (GameMsgProtocol.UserEntryCmd) o;
+            ICmdHandler<? extends GeneratedMessageV3> handler = CmdHandlerFactory.getHandler(o.getClass());
 
-                int userId = cmd.getUserId();
-                String heroAvatar = cmd.getHeroAvatar();
-
-                // 把接收到的消息广播给所有用户
-                GameMsgProtocol.UserEntryResult.Builder resultBuilder = GameMsgProtocol.UserEntryResult.newBuilder();
-                resultBuilder.setUserId(userId);
-                resultBuilder.setHeroAvatar(heroAvatar);
-
-                UserInfo userInfo = new UserInfo();
-                userInfo.setUserId(userId);
-                userInfo.setHeroAvatar(heroAvatar);
-
-                userInfoMap.putIfAbsent(userId, userInfo);
-
-                GameMsgProtocol.UserEntryResult newResult = resultBuilder.build();
-
-                // 其实不应该在这里调用的，但是前端的问题，导致WoElseIsHereCMD无法被先连接的客户端调用
-                Iterator<Channel> iterator = channelGroup.iterator();
-                while (iterator.hasNext()) {
-                    Channel channel = iterator.next();
-                    channel.writeAndFlush(newResult);
-                }
-
-//                channelHandlerContext.writeAndFlush(newResult);
-            }else if(o instanceof GameMsgProtocol.WhoElseIsHereCmd){
-                // 返回当前所有在线的用户信息
-                // 如果没有这个方法，新连接的客户端无法感知之前连接的客户端。
-                // 而旧客户端可以感知新连接的客户端
-
-                // 这个WhoElseIsHereResult是一个集合
-                GameMsgProtocol.WhoElseIsHereResult.Builder resultBuilder = GameMsgProtocol.WhoElseIsHereResult.newBuilder();
-
-                for(UserInfo userInfo : userInfoMap.values()){
-                    GameMsgProtocol.WhoElseIsHereResult.UserInfo.Builder userInfoBuilder = GameMsgProtocol.WhoElseIsHereResult.UserInfo.newBuilder();
-
-                    userInfoBuilder.setUserId(userInfo.getUserId());
-                    userInfoBuilder.setHeroAvatar(userInfo.getHeroAvatar());
-
-                    resultBuilder.addUserInfo(userInfoBuilder.build());
-                }
-
-                GameMsgProtocol.WhoElseIsHereResult newResult = resultBuilder.build();
-                channelHandlerContext.writeAndFlush(newResult);
+            if(handler != null){
+                handler.handle(channelHandlerContext,cast(o));
             }
-
-
-
         }catch (Exception ex){
             logger.error(ex.getMessage(),ex);
         }
-
     }
 
 
@@ -117,11 +65,39 @@ public class GameMessageHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         try {
-            super.channelInactive(ctx);
-            channelGroup.remove(ctx.channel());
+//            super.channelInactive(ctx);
+
+            // 发送客户端离线消息
+            Integer userId = (Integer) ctx.channel().attr(AttributeKey.valueOf("userId")).get();
+
+            if(userId == null){
+                logger.info("离线请求发送失败，获取到的userId 为 null");
+                return;
+            }
+            UserManager.removeUser(userId);
+
+            GameMsgProtocol.UserQuitResult.Builder resultBuilder = GameMsgProtocol.UserQuitResult.newBuilder();
+            resultBuilder.setQuitUserId(userId);
+
+            GameMsgProtocol.UserQuitResult newResult = resultBuilder.build();
+
+            // 需要主动给其他客户端推送离线消息
+            Broadcaster.broadCast(newResult);
+
+            Broadcaster.removeChannel(ctx.channel());
             logger.info("将channel:{} 移除",ctx.channel());
         }catch (Exception ex){
             logger.error(ex.getMessage(),ex);
         }
     }
+
+
+    private static <T extends GeneratedMessageV3> T cast(Object msg){
+        if(msg == null){
+            return null;
+        }else{
+            return (T) msg;
+        }
+    }
+
 }
