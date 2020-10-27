@@ -7,14 +7,20 @@ import com.fantow.handler.ICmdHandler;
 import com.fantow.message.GameMsgProtocol;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 // 在该条消息中，客户端会推给服务器角色移动的起始+终止坐标+起始时间
 // 实现这个同步逻辑，也要求前端有这个功能
 public class UserMoveToCmdHandler implements ICmdHandler<GameMsgProtocol.UserMoveToCmd> {
+
+    private static Logger logger = LoggerFactory.getLogger(UserMoveToCmdHandler.class);
+
     @Override
     public void handle(ChannelHandlerContext ctx, GameMsgProtocol.UserMoveToCmd o) {
-        System.out.println("服务器端接收到UserMoveToCmd 请求");
+
+        logger.info("服务器端接收到UserMoveToCmd 请求");
 
         // 如果是用户移动的命令
         GameMsgProtocol.UserMoveToResult.Builder resultBuilder = GameMsgProtocol.UserMoveToResult.newBuilder();
@@ -22,19 +28,19 @@ public class UserMoveToCmdHandler implements ICmdHandler<GameMsgProtocol.UserMov
         Integer userId = (Integer) ctx.channel().attr(AttributeKey.valueOf("userId")).get();
 
         if(userId == null){
-            System.out.println("userId为空");
+//            System.out.println("userId为空");
             return;
         }
 
         GameMsgProtocol.UserMoveToCmd message = (GameMsgProtocol.UserMoveToCmd) o;
-        System.out.println("接收到移动消息： " + message);
+//        System.out.println("接收到移动消息： " + message);
 
         // 统一的移动时间
         long startTime = System.currentTimeMillis();
 
         UserInfo userInfo = UserManager.getUserInfo(userId);
 
-        System.out.println("message: " + " fromX:" + message.getMoveFromPosX() + " fromY:" + message.getMoveFromPosY() + " toX:" + message.getMoveToPosX() + " toY:" + message.getMoveToPosY());
+//        System.out.println("message: " + " fromX:" + message.getMoveFromPosX() + " fromY:" + message.getMoveFromPosY() + " toX:" + message.getMoveToPosX() + " toY:" + message.getMoveToPosY());
 
         System.out.println(userInfo.getMoveState());
 

@@ -20,7 +20,8 @@ public class UserEntryCmdHandler implements ICmdHandler<GameMsgProtocol.UserEntr
 
     @Override
     public void handle(ChannelHandlerContext ctx, GameMsgProtocol.UserEntryCmd o) {
-        System.out.println("服务器端接收到UserEntryCmd 请求");
+
+        logger.info("服务器端接收到UserEntryCmd 请求");
 //        GameMsgProtocol.UserEntryCmd message = (GameMsgProtocol.UserEntryCmd) o;
 //        int userId = message.
 //        String heroAvatar = message.getHeroAvatar();

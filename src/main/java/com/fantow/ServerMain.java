@@ -1,10 +1,13 @@
 package com.fantow;
 
 import com.fantow.DBOperation.MySqlSessionFactory;
+import com.fantow.Processor.AsyncOperationProcessor;
 import com.fantow.Utils.GameMsgRecognizer;
+import com.fantow.Utils.RedisUtil;
 import com.fantow.codec.GameMsgDecoder;
 import com.fantow.codec.GameMsgEncoder;
 import com.fantow.handler.CmdHandlerFactory;
+import com.fantow.mq.MQProducer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -35,6 +38,9 @@ public class ServerMain {
         CmdHandlerFactory.init();
         GameMsgRecognizer.init();
         MySqlSessionFactory.init();
+        AsyncOperationProcessor.init();
+        RedisUtil.init();
+        MQProducer.init();
 
 
         try {

@@ -1,10 +1,13 @@
 package com.fantow.handler.Impl;
 
+import com.fantow.DBOperation.LoginService;
 import com.fantow.Entity.UserInfo;
+import com.fantow.Entity.VictoryMessage;
 import com.fantow.Utils.Broadcaster;
 import com.fantow.Utils.UserManager;
 import com.fantow.handler.ICmdHandler;
 import com.fantow.message.GameMsgProtocol;
+import com.fantow.mq.MQProducer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
@@ -65,6 +68,9 @@ public class UserAttkCmdHandler implements ICmdHandler<GameMsgProtocol.UserAttkC
         if(targetUserInfo.getHP() <= 0){
             userDieBuilder.setTargetUserId(targetUserInfo.getUserId());
             Broadcaster.broadCast(userDieBuilder.build());
+
+            // 发送消息
+            MQProducer.getInstance().sendMessage("victory",new VictoryMessage(userId,targetUserInfo.getUserId()));
         }
 
     }

@@ -35,12 +35,21 @@ public class MainMsgProcessor {
         return processor;
     }
 
+    public void process(Runnable runnable){
+        if(runnable == null){
+            return;
+        }
+
+        service.submit(runnable);
+    }
+
+
     public void handle(ChannelHandlerContext channelHandlerContext,Object o){
 
         service.submit(new Runnable() {
             @Override
             public void run() {
-                System.out.println("调用了线程：" + Thread.currentThread().getName() + "进行任务的处理");
+                logger.info("调用了线程：" + Thread.currentThread().getName() + "进行任务的处理");
 
                 if(channelHandlerContext == null){
                     logger.info("当前channelHandlerContext为null");
@@ -58,9 +67,7 @@ public class MainMsgProcessor {
                 }
             }
         });
-
     }
-
 
     private static <T extends GeneratedMessageV3> T cast(Object msg){
         if(msg == null){

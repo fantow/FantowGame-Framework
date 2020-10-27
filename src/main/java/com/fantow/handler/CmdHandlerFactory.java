@@ -24,6 +24,7 @@ public class CmdHandlerFactory {
         handlerMap.put(GameMsgProtocol.UserMoveToCmd.class,new UserMoveToCmdHandler());
         handlerMap.put(GameMsgProtocol.UserAttkCmd.class,new UserAttkCmdHandler());
         handlerMap.put(GameMsgProtocol.UserLoginCmd.class,new UserLoginCmdHandler());
+        handlerMap.put(GameMsgProtocol.GetRankCmd.class,new GetRankCmdHandler());
     }
 
 

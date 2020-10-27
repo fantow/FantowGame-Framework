@@ -7,8 +7,12 @@ import com.fantow.handler.ICmdHandler;
 import com.fantow.message.GameMsgProtocol;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WhoElseIsHereCmdHandler implements ICmdHandler<GameMsgProtocol.WhoElseIsHereCmd> {
+
+    private static Logger logger = LoggerFactory.getLogger(WhoElseIsHereCmdHandler.class);
 
     @Override
     public void handle(ChannelHandlerContext ctx, GameMsgProtocol.WhoElseIsHereCmd message) {
@@ -16,7 +20,7 @@ public class WhoElseIsHereCmdHandler implements ICmdHandler<GameMsgProtocol.WhoE
         // 如果没有这个方法，新连接的客户端无法感知之前连接的客户端。
         // 而旧客户端可以感知新连接的客户端
 
-        System.out.println("服务器端接收到WhoElseIsHereCmd 请求");
+        logger.info("服务器端接收到WhoElseIsHereCmd 请求");
 
         // 这个WhoElseIsHereResult是一个集合
         GameMsgProtocol.WhoElseIsHereResult.Builder resultBuilder = GameMsgProtocol.WhoElseIsHereResult.newBuilder();
@@ -25,7 +29,6 @@ public class WhoElseIsHereCmdHandler implements ICmdHandler<GameMsgProtocol.WhoE
 
         for(UserInfo userInfo : UserManager.listUser()){
             if(mySelfId != null && userInfo.getUserId() == mySelfId){
-                System.out.println("检测重复..");
                 continue;
             }
 
